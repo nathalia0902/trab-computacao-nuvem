@@ -1,4 +1,3 @@
 Projeto de Controle de Versão
 
-Linha principal alterado 
-pelo usuario 2.
+Linha principal alterado pelo usuario 2
