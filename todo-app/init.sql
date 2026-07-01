@@ -3,3 +3,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     title VARCHAR(255) NOT NULL,
     done BOOLEAN DEFAULT FALSE
 );
+
+
+
+
+
+
+
