@@ -1,0 +1,43 @@
+name: CI/CD To-Do App
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t todo-app .
+
+      - name: Teste básico
+        run: docker run --rm todo-app node -v
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy na EC2
+        run: |
+          rsync -avz --delete --exclude='.git' --exclude='.env' \
+          -e "ssh -i ~/.ssh/id_rsa" \
+          ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/todo-app/
+
+      - name: Restart aplicação
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+          "cd ~/todo-app && docker-compose up -d --build"
